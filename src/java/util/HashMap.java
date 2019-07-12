@@ -133,11 +133,23 @@ import java.util.function.Function;
  * @see Hashtable
  * @since 1.2
  */
-///遍历的时间是O(capacity+size),为什么？
-// hash冲突怎么解决？
-// why the default initial capacity MUST be a power of two?
-// 在什么情况下扩张，是如何扩张的?
-/// 元素减少时，会收缩吗?
+
+/**
+ * HashMap是常用的Java集合之一，是基于哈希表的Map接口的实现。与HashTable主要区别为不支持同步和允许null作为key和value。
+ * HashMap非线程安全，即任一时刻可以有多个线程同时写HashMap，可能会导致数据的不一致。
+ * 如果需要满足线程安全，可以用 Collections的synchronizedMap方法使HashMap具有线程安全的能力，或者使用ConcurrentHashMap。
+ * 在JDK1.6中，HashMap采用数组+链表实现，即使用链表处理冲突，同一hash值的链表都存储在一个链表里。
+ * 但是当位于一个数组中的元素较多，即hash值相等的元素较多时，通过key值依次查找的效率较低。
+ * 而JDK1.8中，HashMap采用数组+链表+红黑树实现，当链表长度超过阈值8时，将链表转换为红黑树，这样大大减少了查找时间。
+ * 原本Map.Entry接口的实现类Entry改名为了Node。转化为红黑树时改用另一种实现TreeNode。
+ *
+ * QA:
+ * 遍历的时间是O(capacity+size),为什么？
+ * hash冲突怎么解决？
+ * why the default initial capacity MUST be a power of two?
+ * 在什么情况下扩张，是如何扩张的?
+ * 元素减少时，会收缩吗?
+ */
 public class HashMap<K, V> extends AbstractMap<K, V>
     implements Map<K, V>, Cloneable, Serializable {
 
