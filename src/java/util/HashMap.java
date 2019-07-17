@@ -248,6 +248,9 @@ public class HashMap<K, V> extends AbstractMap<K, V>
   /**
    * The default initial capacity - MUST be a power of two.
    */
+  /**
+   * 默认的初始容量（容量为HashMap中槽的数目）是16，且实际容量必须是2的整数次幂。
+   */
   static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
 
   /**
@@ -255,10 +258,16 @@ public class HashMap<K, V> extends AbstractMap<K, V>
    * by either of the constructors with arguments.
    * MUST be a power of two <= 1<<30.
    */
+  /**
+   * 最大容量（必须是2的幂且小于2的30次方，传入容量过大将被这个值替换）
+   */
   static final int MAXIMUM_CAPACITY = 1 << 30;
 
   /**
    * The load factor used when none specified in constructor.
+   */
+  /**
+   * 默认装填因子0.75，如果当前键值对个数 >= HashMap最大容量*装填因子，进行rehash操作
    */
   static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
