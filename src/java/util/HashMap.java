@@ -279,12 +279,18 @@ public class HashMap<K, V> extends AbstractMap<K, V>
    * tree removal about conversion back to plain bins upon
    * shrinkage.
    */
+  /**
+   * JDK1.8 新加，Entry链表最大长度，当桶中节点数目大于该长度时，将链表转成红黑树存储；
+   */
   static final int TREEIFY_THRESHOLD = 8;
 
   /**
    * The bin count threshold for untreeifying a (split) bin during a
    * resize operation. Should be less than TREEIFY_THRESHOLD, and at
    * most 6 to mesh with shrinkage detection under removal.
+   */
+  /**
+   * JDK1.8 新加，当桶中节点数小于该长度，将红黑树转为链表存储；
    */
   static final int UNTREEIFY_THRESHOLD = 6;
 
@@ -293,6 +299,11 @@ public class HashMap<K, V> extends AbstractMap<K, V>
    * (Otherwise the table is resized if too many nodes in a bin.)
    * Should be at least 4 * TREEIFY_THRESHOLD to avoid conflicts
    * between resizing and treeification thresholds.
+   */
+  /**
+   * 桶可能被转化为树形结构的最小容量。
+   * 当哈希表的大小超过这个阈值，才会把链式结构转化成树型结构，否则仅采取扩容来尝试减少冲突。
+   * 应该至少4*TREEIFY_THRESHOLD来避免扩容和shu'xing
    */
   static final int MIN_TREEIFY_CAPACITY = 64;
 
