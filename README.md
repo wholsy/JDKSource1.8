@@ -13,6 +13,7 @@ JDK1.8 源码阅读
 
 + COLLECTION
   - ArrayList
+    + <a href="https://github.com/yueny/JDKSource1.8/blob/master/src/java/util/ArrayList.java">ArrayList源码解析</a><br/>
     + <a href="https://muzinuo.com/article/b43l5o2zf787.html">Why the maximum array size of ArrayList is Integer.MAX_VALUE - 8</a><br/>
 
 
