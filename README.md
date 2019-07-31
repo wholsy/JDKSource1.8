@@ -1,4 +1,4 @@
-# JDK1.8
+# JDK1.8 源码
 
 ## Introduction
 JDK1.8 源码阅读
@@ -24,7 +24,12 @@ JDK1.8 源码阅读
 ### java.net
 ### java.nio
 
+
 # 书单
++ HashMap
+   - <a href="https://muzinuo.com/article/byuan-ma-jie-xi.html">JDK1.8 HashMap源码解析</a><br/>
+   - <a href="https://muzinuo.com/article/bpyu3m4s0s38.html">HashMap 1.8前后的差异对比</a><br/>
+   
 + Spring
   - <a href="https://muzinuo.com/article/b6f9891f3s26.html">Spring的Bean能不能被回收？是如何被回收的？</a><br/>
   - <a href="https://muzinuo.com/article/39188987a74q.html">Spring boot使用logback实现多环境日志配置</a><br/>
@@ -37,7 +42,3 @@ JDK1.8 源码阅读
   - <a href="https://muzinuo.com/article/o38183syy6sd.html">Redis 知识点学习</a><br/>
 + 中间件
   - <a href="https://muzinuo.com/article/271099s75ix4.html">rapid-lang-mask Java 客户端使用手册</a><br/>
-+ HashMap
-   - <a href="https://muzinuo.com/article/byuan-ma-jie-xi.html">JDK1.8 HashMap源码解析</a><br/>
-   - <a href="https://muzinuo.com/article/bpyu3m4s0s38.html">HashMap 1.8前后的差异对比</a><br/>
-
