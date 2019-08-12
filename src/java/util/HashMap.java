@@ -603,7 +603,7 @@ public class HashMap<K, V> extends AbstractMap<K, V>
    * (16) and the default load factor (0.75).
    */
   /**
-   * 使用指定的初始化容量（16）和默认加载因子DEFAULT_LOAD_FACTOR（0.75）构造一个空HashMap
+   * 使用指定的初始化容量（16）和默认加载因子DEFAULT_LOAD_FACTOR（0.75）构造一个空HashMap，初始容量在第一次put时才会初始化
    */
   public HashMap() {
     this.loadFactor = DEFAULT_LOAD_FACTOR; // all other fields defaulted
@@ -830,7 +830,7 @@ public class HashMap<K, V> extends AbstractMap<K, V>
    *
    * @param key   指定key
    * @param value 指定value
-   * @return 如果value被替换，则返回旧的value，否则返回null。当然，可能key对应的value就是null
+   * @return 如果value被替换，则返回旧的value，否则返回null。DEFAULT_INITIAL_CAPACITY当然，可能key对应的value就是null
    */
   public V put(K key, V value) {
     return putVal(hash(key), key, value, false, true);
