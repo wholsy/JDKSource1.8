@@ -894,33 +894,35 @@ public class HashMap<K, V> extends AbstractMap<K, V>
     * (n - 1) & hash 计算key将被放置的槽位.
     * (n - 1) & hash 本质上是hash % n，位运算更快.
     */
-    // 将数组长度与计算得到的hash值比较
+    //如果选定的数组坐标处没有元素，直接放入
     if ((p = tab[i = (n - 1) & hash]) == null) {
         //位置为空，将i位置上赋值一个node对象
         tab[i] = newNode(hash, key, value, null);
-    } else {// 桶中已经存在元素
+    } else { // 桶中已经存在元素， 则进入else
       Node<K, V> e;
       K k;
 
-        // 如果这个位置的old节点与new节点的key 和 hash值完全相同
+      //如果链表第一个元素或树的根的key与要插入的数元素key 和 hash值完全相同，覆盖旧值
       if (p.hash == hash &&
           ((k = p.key) == key || (key != null && key.equals(k)))) {
         // 将第一个元素赋值给e，用e来记录
         e = p;
 
-      // 当前桶中无该键值对，且桶是红黑树结构，按照红黑树结构插入
+      // 当前桶中无该键值对， 进入else. 此时如果桶是红黑树结构，按照红黑树结构插入，调用putTreeVal
       } else if (p instanceof TreeNode) {
         e = ((TreeNode<K, V>) p).putTreeVal(this, tab, hash, key, value);
 
       //p与新节点既不完全相同，p也不是treenode的实例， 即桶是链表结构，按照链表结构插入到尾部
+      //此时只是hash冲突，并且是链表
       } else {
+        //遍历链表，找到合适的处理方式 1插入新节点 2覆盖旧值
         for (int binCount = 0; ; ++binCount) { //一个死循环
-              // 遍历到链表尾部
+              //在链表尾部插入新节点
               if ((e = p.next) == null) { //e=p.next,如果p的next指向为null
                 // 先将新节点插入到　p.next
                 p.next = newNode(hash, key, value, null);
 
-                // 检查链表长度是否达到阈值 8，达到将该槽位节点组织形式转为红黑树
+                // 如果链表长度大于等于8，变为红黑树
                 // treeify 是插入时同时检查和执行的
                 if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
                 {
@@ -930,6 +932,7 @@ public class HashMap<K, V> extends AbstractMap<K, V>
                 break;
               }
 
+              // 如果链表中有一个节点key和新插入的key重复，则跳出循环。
               // 链表节点的<key, value>与put操作<key, value>相同时，不做重复操作，跳出循环
               // 直白一点就是说，如果遍历过程中链表中的元素与新添加的元素完全相同，则跳出循环
               if (e.hash == hash &&
@@ -987,7 +990,9 @@ public class HashMap<K, V> extends AbstractMap<K, V>
   /**
    * 对table进行初始化或者扩容。
    * 如果table为null，则对table进行初始化
-   * 如果对table扩容，因为每次扩容都是翻倍，与原来计算（n-1）&hash的结果相比，节点要么就在原来的位置，要么就被分配到“原位置+旧容量”这个位置
+   * 如果对table扩容，因为每次扩容都是翻倍，与原来计算（n-1）&hash的结果相比，
+   * 节点要么就在原来的位置，要么就被分配到“原位置+旧容量”这个位置。
+   *
    * resize的步骤总结为:
    * 1.计算扩容后的容量，临界值。
    * 2.将hashMap的临界值修改为扩容后的临界值
@@ -1002,72 +1007,150 @@ public class HashMap<K, V> extends AbstractMap<K, V>
     int oldCap = (oldTab == null) ? 0 : oldTab.length;
     int oldThr = threshold;
     int newCap, newThr = 0;
+
+    //如果旧表的长度不是空， 扩容肯定执行这个分支
     if (oldCap > 0) {
       ///已经最大了，则不再扩张, 所以此时loadfactor很大，冲突量比较大，查询不再是O(1)
       if (oldCap >= MAXIMUM_CAPACITY) {
         threshold = Integer.MAX_VALUE;
         return oldTab;
+
+      // 把新表的长度设置为旧表长度的两倍，newCap=2*oldCap
       } else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
-          oldCap >= DEFAULT_INITIAL_CAPACITY) {
+          oldCap >= DEFAULT_INITIAL_CAPACITY) { //扩容容量为2倍，临界值为2倍
         newThr = oldThr << 1; // double threshold
       }
+
+    // 如果旧表的长度的是0，就是说第一次初始化表
     } else if (oldThr > 0) // initial capacity was placed in threshold
     {
       newCap = oldThr;
     } else {               // zero initial threshold signifies using defaults
       newCap = DEFAULT_INITIAL_CAPACITY;
+      //  默认 16 * 0.75 = 12
       newThr = (int) (DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
     }
+
     if (newThr == 0) {
+      //新表长度乘以加载因子
       float ft = (float) newCap * loadFactor;
       newThr = (newCap < MAXIMUM_CAPACITY && ft < (float) MAXIMUM_CAPACITY ?
           (int) ft : Integer.MAX_VALUE);
     }
+
+    //将新的临界值赋值赋值给threshold
     threshold = newThr;
+
     @SuppressWarnings({"rawtypes", "unchecked"})
-    /// 按newCap创建新的数组
+    /// 开始构造新表， 按newCap创建新的数组，初始化表中的数据
     Node<K, V>[] newTab = (Node<K, V>[]) new Node[newCap];
+    //新的数组赋值给table
     table = newTab;
-    if (oldTab != null) {
+
+    //扩容后，重新计算元素新的位置。 原表不是空要把原表中数据移动到新表中
+    if (oldTab != null) {   // oldCap 原数组
+      //遍历原来的旧表
       for (int j = 0; j < oldCap; ++j) {
         Node<K, V> e;
+
+        //判断当前遍历下的该node是否为空，将j位置上的节点保存到e, 然后将oldTab[j]置为空。
         if ((e = oldTab[j]) != null) {
+          // 为什么要置为空，有什么好处？？ TODO
           oldTab[j] = null;
-          ///普通节点, 位置是hash求余
+
+          ///普通节点, 位置是hash求余。 如果为null 说明这个node没有链表直接放在新表的e.hash & (newCap - 1)位置
           if (e.next == null) {
             newTab[e.hash & (newCap - 1)] = e;
           } else if (e instanceof TreeNode) {
             ((TreeNode<K, V>) e).split(this, newTab, j, oldCap);
-          } else { // preserve order
-            Node<K, V> loHead = null, loTail = null;
-            Node<K, V> hiHead = null, hiTail = null;
-            Node<K, V> next;
-            do {
-              next = e.next;
-              if ((e.hash & oldCap) == 0) {
-                if (loTail == null) {
-                  loHead = e;
+
+          // 如果e后边有链表,到这里表示e后面带着个单链表，需要遍历单链表，将每个结点重新计算在新表的位置，并进行搬运
+          } else { // preserve order 保证顺序
+              Node<K, V> loHead = null, loTail = null;
+              Node<K, V> hiHead = null, hiTail = null;
+              Node<K, V> next;
+
+              /*
+              这里如果判断成立，那么该元素的地址在新的数组中就不会改变。
+              因为oldCap的最高位的1，在e.hash对应的位上为0，所以扩容后得到的地址是一样的，位置不会改变 ，在后面的代码的执行中会放到loHead中去，最后赋值给newTab[j]；
+
+              如果判断不成立，那么该元素的地址变为 原下标位置+oldCap，也就是lodCap最高位的1，在e.hash对应的位置上也为1，所以扩容后的地址改变了，在后面的代码中会放到hiHead中，最后赋值给newTab[j + oldCap]
+
+              举个例子来说一下上面的两种情况：
+                设：oldCap=16 二进制为：0001 0000
+                   oldCap-1=15 二进制为：0000 1111
+                   e1.hash=10 二进制为：0000 1010
+                   e2.hash=26 二进制为：0101 1010
+                e1在扩容前的位置为：e1.hash & oldCap-1  结果为：0000 1010
+                e2在扩容前的位置为：e2.hash & oldCap-1  结果为：0000 1010
+                结果相同，所以e1和e2在扩容前在同一个链表上，这是扩容之前的状态。
+
+                现在扩容后，需要重新计算元素的位置，在扩容前的链表中计算地址的方式为e.hash & oldCap-1
+                那么在扩容后应该也这么计算，扩容后的容量为oldCap*2=32，2^5, 二进制为：0010 0000。 所以 newCap=32，
+                新的计算方式应该为
+                e1.hash & newCap-1
+                即：0000 1010 & 0001 1111
+                结果为0000 1010与扩容前的位置完全一样。
+                e2.hash & newCap-1 即：0101 1010 & 0001 1111
+                结果为0001 1010,为扩容前位置+oldCap。
+
+                而这里却没有e.hash & newCap-1 而是 e.hash & oldCap，其实这两个是等效的，都是判断倒数第五位是0，还是1。
+                如果是0，则位置不变，是1则位置改变为扩容前位置+oldCap。
+
+                再来分析下loTail, loHead这两个的执行过程（假设(e.hash & oldCap) == 0成立）：
+                第一次执行：
+                e指向oldTab[j]所指向的node对象，即e指向该位置上链表的第一个元素.
+                loTail为空,所以loHead指向与e相同的node对象（loHead = e;），然后loTail也指向了同一个node对象（loTail = e;）。
+                最后，在判断条件e指向next，就是指向oldTab链表中的第二个元素
+
+                第二次执行：
+                lotail不为null，所以lotail.next指向e，这里其实是lotail指向的node对象的next指向e，
+                也可以说是，loHead的next指向了e，就是指向了oldTab链表中第二个元素。此时loHead指向
+                的node变成了一个长度为2的链表。然后lotail=e也就是指向了链表中第二个元素的地址。
+
+                第三次执行：
+                与第二次执行类似，loHead上的链表长度变为3，又增加了一个node，loTail指向新增的node......
+
+                hiTail与hiHead的执行过程与以上相同。
+                由此可以看出，loHead是用来保存新链表上的头元素的，loTail是用来保存尾元素的，直到遍历完链表。
+                这是(e.hash & oldCap) == 0成立的时候。
+
+                (e.hash & oldCap) == 0不成立的情况也相同，其实就是把oldCap遍历成两个新的链表，
+                通过loHead和hiHead来保存链表的头结点，然后将两个头结点放到newTab[j]与newTab[j+oldCap]上面去。
+              */
+              do {
+                //记录下一个结点
+                next = e.next;
+                if ((e.hash & oldCap) == 0) {
+                  if (loTail == null) {
+                    loHead = e;
+                  } else {
+                    loTail.next = e;
+                  }
+                  loTail = e;
                 } else {
-                  loTail.next = e;
+                  if (hiTail == null) {
+                    hiHead = e;
+                  } else {
+                    hiTail.next = e;
+                  }
+                  hiTail = e;
                 }
-                loTail = e;
-              } else {
-                if (hiTail == null) {
-                  hiHead = e;
-                } else {
-                  hiTail.next = e;
-                }
-                hiTail = e;
+              } while ((e = next) != null);
+
+              //lo队不为null，放在新表原位置
+              if (loTail != null) {
+                //尾节点的next设置为空
+                loTail.next = null;
+                newTab[j] = loHead;
               }
-            } while ((e = next) != null);
-            if (loTail != null) {
-              loTail.next = null;
-              newTab[j] = loHead;
-            }
-            if (hiTail != null) {
-              hiTail.next = null;
-              newTab[j + oldCap] = hiHead;
-            }
+
+              //hi队不为null，放在新表j+oldCap位置
+              if (hiTail != null) {
+                //尾节点的next设置为空
+                hiTail.next = null;
+                newTab[j + oldCap] = hiHead;
+              }
           }
         }
       }
