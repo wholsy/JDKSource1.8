@@ -270,6 +270,12 @@ public class HashMap<K, V> extends AbstractMap<K, V>
    */
   /**
    * 默认装填因子0.75，如果当前键值对个数 >= HashMap最大容量*装填因子，进行rehash操作
+   *
+   * 空间换时间。 越大， 碰撞的概率越大.  TODO
+   *
+   * AQS 为什么通过静态内部类写？
+   * volate怎么保证可见性？ openjdk看源码，可以看到可重入怎么做的？
+   * JOC 源码
    */
   static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
