@@ -922,10 +922,11 @@ public class HashMap<K, V> extends AbstractMap<K, V>
                 // 先将新节点插入到　p.next
                 p.next = newNode(hash, key, value, null);
 
-                // 如果链表长度大于等于8，变为红黑树
-                // treeify 是插入时同时检查和执行的
-                if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
-                {
+             //如果冲突的节点数已经达到8个，看是否需要改变冲突节点的存储结构，
+             // treeifyBin首先判断当前hashMap的长度，如果不足64，只进行resize，扩容table，
+             // 如果达到64，那么将冲突的存储结构为红黑树
+            if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+            {
                   //将链表转化为二叉树
                   treeifyBin(tab, hash);
                 }
@@ -1005,49 +1006,54 @@ public class HashMap<K, V> extends AbstractMap<K, V>
     //新建oldTab数组保存扩容前的数组table
     Node<K, V>[] oldTab = table;
     int oldCap = (oldTab == null) ? 0 : oldTab.length;
+    //默认构造器的情况下为0
     int oldThr = threshold;
     int newCap, newThr = 0;
 
     //如果旧表的长度不是空， 扩容肯定执行这个分支
     if (oldCap > 0) {
-      ///已经最大了，则不再扩张, 所以此时loadfactor很大，冲突量比较大，查询不再是O(1)
-      if (oldCap >= MAXIMUM_CAPACITY) {
-        threshold = Integer.MAX_VALUE;
-        return oldTab;
+        //当前table容量大于最大值得时候返回当前table. 此时loadfactor很大，冲突量比较大，查询不再是O(1)
+        if (oldCap >= MAXIMUM_CAPACITY) {
+          threshold = Integer.MAX_VALUE;
+          return oldTab;
 
-      // 把新表的长度设置为旧表长度的两倍，newCap=2*oldCap
-      } else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
-          oldCap >= DEFAULT_INITIAL_CAPACITY) { //扩容容量为2倍，临界值为2倍
-        newThr = oldThr << 1; // double threshold
-      }
+        // 把新表的长度设置为旧表长度的两倍，newCap=2*oldCap
+        } else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
+            oldCap >= DEFAULT_INITIAL_CAPACITY) {
+          //扩容容量为2倍，临界值为2倍
+          newThr = oldThr << 1; // double threshold
+        }
 
     // 如果旧表的长度的是0，就是说第一次初始化表
     } else if (oldThr > 0) // initial capacity was placed in threshold
     {
+      //使用带有初始容量的构造器时，table容量为初始化得到的threshold
       newCap = oldThr;
     } else {               // zero initial threshold signifies using defaults
-      newCap = DEFAULT_INITIAL_CAPACITY;
-      //  默认 16 * 0.75 = 12
-      newThr = (int) (DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
+        //默认构造器下进行扩容
+        newCap = DEFAULT_INITIAL_CAPACITY;
+        //  默认 16 * 0.75 = 12
+        newThr = (int) (DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
     }
 
+    //使用带有初始容量的构造器在此处进行扩容
     if (newThr == 0) {
-      //新表长度乘以加载因子
-      float ft = (float) newCap * loadFactor;
-      newThr = (newCap < MAXIMUM_CAPACITY && ft < (float) MAXIMUM_CAPACITY ?
-          (int) ft : Integer.MAX_VALUE);
+        //新表长度乘以加载因子
+        float ft = (float) newCap * loadFactor;
+        newThr = (newCap < MAXIMUM_CAPACITY && ft < (float) MAXIMUM_CAPACITY ?
+            (int) ft : Integer.MAX_VALUE);
     }
 
     //将新的临界值赋值赋值给threshold
     threshold = newThr;
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    /// 开始构造新表， 按newCap创建新的数组，初始化表中的数据
+    // 开始构造新表， 按newCap创建新的数组，初始化表中的数据
     Node<K, V>[] newTab = (Node<K, V>[]) new Node[newCap];
     //新的数组赋值给table
     table = newTab;
 
-    //扩容后，重新计算元素新的位置。 原表不是空要把原表中数据移动到新表中
+    //扩容后，对新扩容后的table赋值，重新计算元素新的位置。 原表不是空要把原表中数据移动到新表中
     if (oldTab != null) {   // oldCap 原数组
       //遍历原来的旧表
       for (int j = 0; j < oldCap; ++j) {
@@ -1121,6 +1127,8 @@ public class HashMap<K, V> extends AbstractMap<K, V>
               do {
                 //记录下一个结点
                 next = e.next;
+
+                // 新表是旧表的两倍容量，实例上就把单链表拆分为两队, e.hash&oldCap==0为偶数一队，反之为奇数一对
                 if ((e.hash & oldCap) == 0) {
                   if (loTail == null) {
                     loHead = e;
@@ -1195,7 +1203,7 @@ public class HashMap<K, V> extends AbstractMap<K, V>
 
 
           // 前面仅仅转换为双向链表，treeify才是转换红黑树的处理方法入口　
-          // 第一个节点赋值为头节点,也就是根节点
+          // 让桶的第一个元素指向新建的红黑树头结点，以后这个桶里的元素就是红黑树而不是链表了
           if ((tab[index] = hd) != null) {
             // 将二叉树转换为红黑树
             hd.treeify(tab);
@@ -2494,19 +2502,29 @@ public class HashMap<K, V> extends AbstractMap<K, V>
       for (TreeNode<K, V> x = this, next; x != null; x = next) {
         next = (TreeNode<K, V>) x.next;
         x.left = x.right = null;
+
+        // 头回进入循环，确定头结点，为黑色
         if (root == null) {
           x.parent = null;
           x.red = false;
           root = x;
+
+        // 后面进入循环走的逻辑，x 指向树中的某个节点
         } else {
           K k = x.key;
           int h = x.hash;
           Class<?> kc = null;
+
+          // 从根节点开始，遍历所有节点跟当前节点 x 比较，调整位置，有点像冒泡排序
           for (TreeNode<K, V> p = root; ; ) {
             int dir, ph;
             K pk = p.key;
+
+            // 当比较节点的哈希值比 x 大时， dir 为 -1
             if ((ph = p.hash) > h) {
               dir = -1;
+
+            // 哈希值比 x 小时 dir 为 1
             } else if (ph < h) {
               dir = 1;
             } else if ((kc == null &&
@@ -2515,6 +2533,8 @@ public class HashMap<K, V> extends AbstractMap<K, V>
               dir = tieBreakOrder(k, pk);
             }
 
+            // 把当前节点变成 x 的父亲
+            // 如果当前比较节点的哈希值比 x 大，x 就是左孩子，否则 x 是右孩子
             TreeNode<K, V> xp = p;
             if ((p = (dir <= 0) ? p.left : p.right) == null) {
               x.parent = xp;
