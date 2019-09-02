@@ -2498,51 +2498,68 @@ public class HashMap<K, V> extends AbstractMap<K, V>
      * @return root of tree
      */
     final void treeify(Node<K, V>[] tab) {
+      //root节点
       TreeNode<K, V> root = null;
       for (TreeNode<K, V> x = this, next; x != null; x = next) {
+        //next　下一个节点
         next = (TreeNode<K, V>) x.next;
+        //设置左右节点为空
         x.left = x.right = null;
 
-        // 头回进入循环，确定头结点，为黑色
+        // 头回进入循环　root　== null，确定头结点，为黑色
         if (root == null) {
+          // 将根节点的父节点设置位空
           x.parent = null;
+          // 将根节点设置为 black
           x.red = false;
+          //将x 设置为根节点
           root = x;
 
-        // 后面进入循环走的逻辑，x 指向树中的某个节点
+        // 后面进入循环走的逻辑，x 指向树中的某个节点。 此处为非根节点
         } else {
+          //　获取当前循环节点key
           K k = x.key;
+          // 获取当前节点 hash
           int h = x.hash;
           Class<?> kc = null;
 
-          // 从根节点开始，遍历所有节点跟当前节点 x 比较，调整位置，有点像冒泡排序
+          // 从根节点开始验证，遍历所有节点跟当前节点 x 比较，调整位置，有点像冒泡排序
           for (TreeNode<K, V> p = root; ; ) {
             int dir, ph;
+            // 每个节点的 key
             K pk = p.key;
 
-            // 当比较节点的哈希值比 x 大时， dir 为 -1
+            // 每个节点的ｈａｓh 与　外层循环的ｘ.hash做比较. 当比较节点的哈希值比 x 大时， dir 为 -1
             if ((ph = p.hash) > h) {
+              // <0 ,沿左路径查找
               dir = -1;
 
-            // 哈希值比 x 小时 dir 为 1
+            // >0, 沿右路径查找
             } else if (ph < h) {
               dir = 1;
+
+            // 如果存在比较对象，则根据比较对象定义的comparable进行比较
+            // 比较之后返回查询节点路径（左或右）
             } else if ((kc == null &&
                 (kc = comparableClassFor(k)) == null) ||
                 (dir = compareComparables(kc, k, pk)) == 0) {
               dir = tieBreakOrder(k, pk);
             }
 
-            // 把当前节点变成 x 的父亲
             // 如果当前比较节点的哈希值比 x 大，x 就是左孩子，否则 x 是右孩子
             TreeNode<K, V> xp = p;
+
+            //　如果父节点的左节点或右节点为空时，才进行插入操作
             if ((p = (dir <= 0) ? p.left : p.right) == null) {
+              // 将px设置为ｘ的父节点
               x.parent = xp;
               if (dir <= 0) {
                 xp.left = x;
               } else {
                 xp.right = x;
               }
+
+              // 将二叉树转换位红黑树－正式转换红黑树
               root = balanceInsertion(root, x);
               break;
             }
@@ -2808,7 +2825,7 @@ public class HashMap<K, V> extends AbstractMap<K, V>
 
         /* ------------------------------------------------------------ */
     // Red-black tree methods, all adapted from CLR
-
+    // 左旋转
     static <K, V> TreeNode<K, V> rotateLeft(TreeNode<K, V> root,
                                             TreeNode<K, V> p) {
       TreeNode<K, V> r, pp, rl;
@@ -2829,44 +2846,95 @@ public class HashMap<K, V> extends AbstractMap<K, V>
       return root;
     }
 
+    /**
+     * 右旋转
+     *
+     * @param root 默认调用此方法前指定的root节点
+     * @param p root的父节点
+     *
+     * @param <K>
+     * @param <V>
+     * @return
+     */
     static <K, V> TreeNode<K, V> rotateRight(TreeNode<K, V> root,
                                              TreeNode<K, V> p) {
+      // l: p的左节点 　pp:p的父节点　lr:p的左右节点
       TreeNode<K, V> l, pp, lr;
+
+      // 传入参数
+      // root: 默认调用此方法前指定的root节点
+      // p: root的父节点
       if (p != null && (l = p.left) != null) {
         if ((lr = p.left = l.right) != null) {
           lr.parent = p;
         }
+
+        // 判断p的父节点是否为空
         if ((pp = l.parent = p.parent) == null) {
+          // 调整root的值
           (root = l).red = false;
         } else if (pp.right == p) {
           pp.right = l;
         } else {
           pp.left = l;
         }
+
+        //　将p调整为　root 节点的右节点
         l.right = p;
+        //将l调整为p的parent
         p.parent = l;
       }
       return root;
     }
 
+    /**
+     * 转换二叉树为红黑树
+     * @param root　根节点
+     * @param x　执行的节点
+     *
+     * @param <K>
+     * @param <V>
+     * @return
+     */
     static <K, V> TreeNode<K, V> balanceInsertion(TreeNode<K, V> root,
                                                   TreeNode<K, V> x) {
+      // 默认ｘ节点为红色节点
       x.red = true;
+
+      /**
+       * xp: 　　x的父节点
+       * xpp: 　x父节点的父节点
+       * xppl:　x父节点的父节点左子节点
+       * xppr:　x父节点的父节点右子节点
+       */
       for (TreeNode<K, V> xp, xpp, xppl, xppr; ; ) {
+        // xp = x.parent
+        // 如果x存在父节点，则说明目前只有一个节点,即root.根据红黑树的五大特征，根节点只能为黑色节点
         if ((xp = x.parent) == null) {
           x.red = false;
           return x;
+
+        //xpp = xp.parent, 直接查询的是根节点
         } else if (!xp.red || (xpp = xp.parent) == null) {
           return root;
         }
+
+        // xppl = xpp.left.  x的父节点是左节点时
         if (xp == (xppl = xpp.left)) {
+
+          // 验证是否需要旋转
+          // xppr = xpp.right 存在右节点　且　右节点为红色
           if ((xppr = xpp.right) != null && xppr.red) {
-            xppr.red = false;
-            xp.red = false;
-            xpp.red = true;
+            xppr.red = false;// xppr　设置位ｂlack
+            xp.red = false;  // xp　设置位ｂlack
+            xpp.red = true;  // xpp　设置位red
+
+            // 将x赋值为父节点的父节点
             x = xpp;
           } else {
             if (x == xp.right) {
+
+              // 左旋转
               root = rotateLeft(root, x = xp);
               xpp = (xp = x.parent) == null ? null : xp.parent;
             }
@@ -2874,11 +2942,15 @@ public class HashMap<K, V> extends AbstractMap<K, V>
               xp.red = false;
               if (xpp != null) {
                 xpp.red = true;
+
+                // 右旋转
                 root = rotateRight(root, xpp);
               }
             }
           }
+
         } else {
+          // 验证是否需要旋转
           if (xppl != null && xppl.red) {
             xppl.red = false;
             xp.red = false;
