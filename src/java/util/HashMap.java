@@ -1068,6 +1068,8 @@ public class HashMap<K, V> extends AbstractMap<K, V>
           if (e.next == null) {
             newTab[e.hash & (newCap - 1)] = e;
           } else if (e instanceof TreeNode) {
+            //  树形结构修剪. 当扩容时，
+            //  如果当前桶中元素结构是红黑树，并且元素个数小于链表还原阈值 UNTREEIFY_THRESHOLD （默认为 6），就会把桶中的树形结构缩小或者直接还原（切分）为链表结构
             ((TreeNode<K, V>) e).split(this, newTab, j, oldCap);
 
           // 如果e后边有链表,到这里表示e后面带着个单链表，需要遍历单链表，将每个结点重新计算在新表的位置，并进行搬运
@@ -2763,14 +2765,13 @@ public class HashMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Splits nodes in a tree bin into lower and upper tree bins,
-     * or untreeifies if now too small. Called only from resize;
-     * see above discussion about split bits and indices.
+     * Splits nodes in a tree bin into lower and upper tree bins, or untreeifies if now too small.
+     * Called only from resize; see above discussion about split bits and indices.
      *
-     * @param map   the map
-     * @param tab   the table for recording bin heads
-     * @param index the index of the table being split
-     * @param bit   the bit of hash to split on
+     * @param map the map
+     * @param tab the table for recording bin heads 表示保存桶头结点的哈希表
+     * @param index the index of the table being split 示从哪个位置开始修剪
+     * @param bit the bit of hash to split on 要修剪的位数（哈希值）
      */
     final void split(HashMap<K, V> map, Node<K, V>[] tab, int index, int bit) {
       TreeNode<K, V> b = this;
@@ -2781,29 +2782,40 @@ public class HashMap<K, V> extends AbstractMap<K, V>
       for (TreeNode<K, V> e = b, next; e != null; e = next) {
         next = (TreeNode<K, V>) e.next;
         e.next = null;
+
+        // 如果当前节点哈希值的最后一位等于要修剪的 bit 值
         if ((e.hash & bit) == 0) {
+          // 就把当前节点放到 lXXX 树中
           if ((e.prev = loTail) == null) {
             loHead = e;
           } else {
             loTail.next = e;
           }
+
+          // 然后 loTail 记录 e
           loTail = e;
+          // 记录 lXXX 树的节点数量
           ++lc;
-        } else {
+        } else { // 如果当前节点哈希值最后一位不是要修剪的，就把当前节点放到 hXXX 树中
           if ((e.prev = hiTail) == null) {
             hiHead = e;
           } else {
             hiTail.next = e;
           }
           hiTail = e;
+          // 记录 hXXX 树的节点数量
           ++hc;
         }
       }
 
       if (loHead != null) {
+        // 如果 lXXX 树的数量小于 6，就把 lXXX 树的枝枝叶叶都置为空，变成一个单节点。
+        // 然后让这个桶中，要还原索引位置开始往后的结点都变成还原成链表的 lXXX 节点。
+        // 这一段元素以后就是一个链表结构
         if (lc <= UNTREEIFY_THRESHOLD) {
           tab[index] = loHead.untreeify(map);
         } else {
+          // 否则让索引位置的结点指向 lXXX 树，这个树被修剪过，元素少了
           tab[index] = loHead;
           if (hiHead != null) // (else is already treeified)
           {
@@ -2812,6 +2824,8 @@ public class HashMap<K, V> extends AbstractMap<K, V>
         }
       }
       if (hiHead != null) {
+        // 同理，让 指定位置 index + bit 之后的元素
+        // 指向 hXXX 还原成链表或者修剪过的树
         if (hc <= UNTREEIFY_THRESHOLD) {
           tab[index + bit] = hiHead.untreeify(map);
         } else {
