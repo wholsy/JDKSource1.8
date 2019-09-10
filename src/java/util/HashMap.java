@@ -919,18 +919,18 @@ public class HashMap<K, V> extends AbstractMap<K, V>
         for (int binCount = 0; ; ++binCount) { //一个死循环
               //在链表尾部插入新节点
               if ((e = p.next) == null) { //e=p.next,如果p的next指向为null
-                // 先将新节点插入到　p.next
-                p.next = newNode(hash, key, value, null);
+                  // 先将新节点插入到　p.next
+                  p.next = newNode(hash, key, value, null);
 
-             //如果冲突的节点数已经达到8个，看是否需要改变冲突节点的存储结构，
-             // treeifyBin首先判断当前hashMap的长度，如果不足64，只进行resize，扩容table，
-             // 如果达到64，那么将冲突的存储结构为红黑树
-            if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
-            {
-                  //将链表转化为二叉树
-                  treeifyBin(tab, hash);
-                }
-                break;
+                   //如果冲突的节点数已经达到8个，看是否需要改变冲突节点的存储结构，
+                   // treeifyBin首先判断当前hashMap的长度，如果不足64，只进行resize，扩容table，
+                   // 如果达到64，那么将冲突的存储结构为红黑树
+                  if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                  {
+                    //将链表转化为二叉树
+                    treeifyBin(tab, hash);
+                  }
+                  break;
               }
 
               // 如果链表中有一个节点key和新插入的key重复，则跳出循环。
