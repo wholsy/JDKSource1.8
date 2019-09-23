@@ -3164,6 +3164,14 @@ public class HashMap<K, V> extends AbstractMap<K, V>
       }
     }
 
+    /**
+     * 删除后调整平衡
+     * @param root
+     * @param x
+     * @param <K>
+     * @param <V>
+     * @return
+     */
     static <K, V> TreeNode<K, V> balanceDeletion(TreeNode<K, V> root,
                                                  TreeNode<K, V> x) {
       for (TreeNode<K, V> xp, xpl, xpr; ; ) {
@@ -3257,6 +3265,9 @@ public class HashMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Recursive invariant check
+     */
+    /**
+     * 检测是否符合红黑树
      */
     static <K, V> boolean checkInvariants(TreeNode<K, V> t) {
       TreeNode<K, V> tp = t.parent, tl = t.left, tr = t.right,
