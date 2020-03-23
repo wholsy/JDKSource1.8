@@ -134,6 +134,7 @@ import java.util.function.Function;
  * @since 1.2
  */
 
+
 /**
  * HashMap是常用的Java集合之一，是基于哈希表的Map接口的实现。与HashTable主要区别为不支持同步和允许null作为key和value。
  * HashMap非线程安全，即任一时刻可以有多个线程同时写HashMap，可能会导致数据的不一致。
