@@ -1,12 +1,25 @@
-# JDK1.8 源码
+# JDK1.8 源码阅读
 
-## Introduction
-JDK1.8 源码阅读
+## Introduction JDK1.8 源码阅读
 
 ## Content
 
 ### java.util
-<a href="https://github.com/yueny/JDKSource1.8/blob/master/src/java/util/HashMap.java">HashMap源码解析</a><br/>
++ HashMap
+      - <a href="https://github.com/yueny/JDKSource1.8/blob/master/src/java/util/HashMap.java">JDK1.8 HashMap.java 源码文件</a>
+      - <a href="https://muzinuo.com/article/16">JDK 1.8 LinkedHashMap 原理与学习</a>
+      - <a href="https://muzinuo.com/article/25">JDK1.8 HashMap源码解析</a>
+      - <a href="https://muzinuo.com/article/23">JDK1.8 HashMap源码解析(二) 数据赋值 put</a>
+      - <a href="https://muzinuo.com/article/22">JDK1.8 HashMap源码解析(三) 扩容机制和resize源码详解</a>
+      - <a href="https://muzinuo.com/article/21">JDK1.8 HashMap源码解析(四) 为什么HashMap桶中链表长度个数超过8才转为红黑树</a>
+      - <a href="https://muzinuo.com/article/20">JDK1.8 HashMap源码解析(五) 红黑树的具体实现方式？</a>
+      - <a href="https://muzinuo.com/article/19">HashMap 测试「链表转红黑树以及扩容」</a>
+      - <a href="https://muzinuo.com/article/18">JDK1.8 HashMap源码解析 树形结构修剪</a>
+      - <a href="https://muzinuo.com/article/17">JDK1.8 HashMap 总结</a>
+      - <a href="https://muzinuo.com/article/12">HashMap、HashTable、ConcurrentHashMap的差异</a>
+
++ ArrayList
+      - <a href="https://muzinuo.com/article/26">Why the maximum array size of ArrayList is Integer.MAX_VALUE - 8</a>
 
 ### java.util.concurrent
 + AQS
@@ -30,18 +43,12 @@ JDK1.8 源码阅读
 
 
 # 书单
-* Java
-   + HashMap
-      - <a href="https://muzinuo.com/article/25">JDK1.8 HashMap源码解析</a><br/>
-      
-   + ArrayList
-      - <a href="https://muzinuo.com/article/26">Why the maximum array size of ArrayList is Integer.MAX_VALUE - 8</a><br/>
-
-
 * Spring
   + <a href="https://muzinuo.com/article/27">Spring的Bean能不能被回收？是如何被回收的？</a><br/>
   + <a href="https://muzinuo.com/article/32">Spring boot使用logback实现多环境日志配置</a><br/>
-  
+  + <a href="https://muzinuo.com/article/11">Spring获取Bean的流程(一)</a><br/>
+  + <a href="https://muzinuo.com/article/9">Spring 获取Bean的流程(二)</a><br/>
+
 * JVM
   + <a href="https://muzinuo.com/article/28">JVM学习 JVM模型一</a><br/>
   + <a href="https://muzinuo.com/article/6">JVM GC：Minor GC、Major GC、Full GC的区别</a><br/>
