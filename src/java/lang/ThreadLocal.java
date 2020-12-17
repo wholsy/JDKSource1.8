@@ -160,6 +160,7 @@ public class ThreadLocal<T> {
    * @return the current thread's value of this thread-local
    */
   public T get() {
+    // 使用当前线程从线程中获取属性
     Thread t = Thread.currentThread();
     ThreadLocalMap map = getMap(t);
     if (map != null) {
@@ -200,11 +201,18 @@ public class ThreadLocal<T> {
    * @param value the value to be stored in the current thread's copy of this thread-local.
    */
   public void set(T value) {
+    // 获取当前执行的线程， 使用当前线程作为KEY保存
     Thread t = Thread.currentThread();
+
+    // 从 当前线程Thread 中拿到一个Map，然后把value放到这个线程的map中
+    // 因为每个线程都有一个自己的Map，也就是 threadLocals，从而起到了线程隔离的作用
     ThreadLocalMap map = getMap(t);
+
+    // 如果map不为空，说明当前线程已经构造过ThreadLocalMap，直接将值存储到map中
     if (map != null) {
       map.set(this, value);
     } else {
+      // 如果map为空，说明是第一次使用，调用 createMap构造， 创建(以当前Thread变量为键值，以ThreadLocal要保存的副本变量为value)
       createMap(t, value);
     }
   }
@@ -371,10 +379,15 @@ public class ThreadLocal<T> {
      * one when we have at least one entry to put in it.
      */
     ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
+      // 构造一个 Entry 数组，并设置初始大小
       table = new Entry[INITIAL_CAPACITY];
+      // 计算 Entry 数组下标
       int i = firstKey.threadLocalHashCode & (INITIAL_CAPACITY - 1);
+      // 将 firstValue 存储到指定的  table 下标中
       table[i] = new Entry(firstKey, firstValue);
+      // 设置节点长度为 1
       size = 1;
+      // 设置扩容的阈值
       setThreshold(INITIAL_CAPACITY);
     }
 
@@ -472,18 +485,22 @@ public class ThreadLocal<T> {
 
       Entry[] tab = table;
       int len = tab.length;
+      // 根据 哈希码 和 数组长度，求元素放置的下标
       int i = key.threadLocalHashCode & (len - 1);
 
+      // 从 1 开始往后一直遍历到 最后一个 Entry， 线性探索
       for (Entry e = tab[i];
           e != null;
           e = tab[i = nextIndex(i, len)]) {
         ThreadLocal<?> k = e.get();
 
+        // 如果 key 相等，覆盖 value
         if (k == key) {
           e.value = value;
           return;
         }
 
+        // 如果 key 为 null, 用新key， 新value覆盖，同时清理历史 key = null 的旧数据
         if (k == null) {
           replaceStaleEntry(key, value, i);
           return;
@@ -492,6 +509,8 @@ public class ThreadLocal<T> {
 
       tab[i] = new Entry(key, value);
       int sz = ++size;
+
+      // 如果超过阈值，则扩容
       if (!cleanSomeSlots(i, sz) && sz >= threshold) {
         rehash();
       }
@@ -516,6 +535,9 @@ public class ThreadLocal<T> {
     }
 
     /**
+     *
+     * 由于Entry的key为弱引用，如果key为空，说明ThreadLocal这个对象被GC回收了。 replaceStaleEntry的作用就是把陈旧的Entry进行替换
+     *
      * Replace a stale entry encountered during a set operation
      * with an entry for the specified key.  The value passed in
      * the value parameter is stored in the entry, whether or not
@@ -535,6 +557,7 @@ public class ThreadLocal<T> {
       int len = tab.length;
       Entry e;
 
+      // 向前扫描，查找最前一个无效的  slot
       // Back up to check for prior stale entry in current run.
       // We clean out whole runs at a time to avoid continual
       // incremental rehashing due to garbage collector freeing
@@ -544,6 +567,7 @@ public class ThreadLocal<T> {
           (e = tab[i]) != null;
           i = prevIndex(i, len)) {
         if (e.get() == null) {
+          // 通过循环遍历，可以定位到最前面一个无效的slot
           slotToExpunge = i;
         }
       }
